@@ -1,10 +1,8 @@
 package ru.user.shop;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,6 +26,9 @@ public class Main {
 		options.addRequiredOption("d", "database", true, "Database");
 		options.addRequiredOption("u", "username", true, "Username");
 		options.addRequiredOption("ps", "password", true, "Password");
+
+		// TODO дописать описание
+		options.addOption("l", "list", true, "Lists tables, users, ...");
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = HelpFormatter.builder().get();
@@ -61,6 +62,7 @@ public class Main {
 
 		try {
 			database = new Database(host, port, databaseName, username, password);
+			System.out.println("Успешное соединение с БД");
 		} catch (SQLException e) {
 			System.out.println("Не удалось подключиться к БД, проверьте введенные данные на правильность");
 			e.printStackTrace();
@@ -68,21 +70,37 @@ public class Main {
 			return;
 		}
 
-		try (Connection connection = database.getConnection()) {
-			DatabaseMetaData metaData = connection.getMetaData();
-
-			ResultSet tables = metaData.getTables(null, null, "%", new String[] { "TABLE" });
-
-			System.out.println("Tables in the database:");
-			while (tables.next()) {
-				String tableName = tables.getString("TABLE_NAME");
-				System.out.println(tableName);
+		if (cmd.hasOption("list")) {
+			// break не нужен, тк case "" -> {} сам ставит его, при case "": { } нужен
+			switch (cmd.getOptionValue("list")) {
+			case "tables" -> {
+				List<String> tables = database.getTables();
+				if (tables.isEmpty()) {
+					System.out.println("Таблиц нет");
+				} else {
+					System.out.println("Таблицы:");
+					tables.forEach((table) -> {
+						System.out.println(table);
+					});
+				}
 			}
-
-			tables.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
+			case "users" -> {
+				List<Customer> customers = database.getAllCustomers();
+				if (customers.isEmpty()) {
+					System.out.println("Покупателей нет");
+				} else {
+					System.out.println("Покупатели:");
+					customers.forEach((customer) -> {
+						System.out.println(customer.toString());
+					});
+				}
+			}
+			default -> {
+				System.out.println("Такого параметра нет");
+			}
+			}
 		}
+		System.out.println("Конец работы программы");
 	}
 
 	public static void closeDatabase() {
