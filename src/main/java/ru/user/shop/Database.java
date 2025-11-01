@@ -3,6 +3,7 @@ package ru.user.shop;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -52,6 +53,20 @@ public class Database {
 			e.printStackTrace();
 		}
 		return customers;
+	}
+
+	public boolean insertCustomer(Customer customer) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("INSERT INTO customers (full_name, email, phone_number) VALUES (?, ?, ?)")) {
+			statement.setString(1, customer.getFullName());
+			statement.setString(2, customer.getEmail());
+			statement.setLong(3, customer.getPhoneNumber());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }

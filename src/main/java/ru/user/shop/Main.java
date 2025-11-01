@@ -1,8 +1,10 @@
 package ru.user.shop;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,7 +30,8 @@ public class Main {
 		options.addRequiredOption("ps", "password", true, "Password");
 
 		// TODO дописать описание
-		options.addOption("l", "list", true, "Lists tables, users, ...");
+		options.addOption("l", "list", true, "Lists tables, customers, ...");
+		options.addOption("i", "insert", true, "Insert customer, ...");
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = HelpFormatter.builder().get();
@@ -69,7 +72,11 @@ public class Main {
 			System.exit(1);
 			return;
 		}
+		work(cmd);
+		System.out.println("Конец работы программы");
+	}
 
+	public static void work(CommandLine cmd) {
 		if (cmd.hasOption("list")) {
 			// break не нужен, тк case "" -> {} сам ставит его, при case "": { } нужен
 			switch (cmd.getOptionValue("list")) {
@@ -84,7 +91,7 @@ public class Main {
 					});
 				}
 			}
-			case "users" -> {
+			case "customers" -> {
 				List<Customer> customers = database.getAllCustomers();
 				if (customers.isEmpty()) {
 					System.out.println("Покупателей нет");
@@ -99,8 +106,38 @@ public class Main {
 				System.out.println("Такого параметра нет");
 			}
 			}
+			return;
 		}
-		System.out.println("Конец работы программы");
+
+		if (cmd.hasOption("insert")) {
+			switch (cmd.getOptionValue("insert")) {
+			case "customer" -> {
+				Scanner scanner = new Scanner(System.in, Charset.forName("Windows-1251"));
+				System.out.println("Введите ФИО");
+				String fullName = scanner.nextLine();
+				System.out.println("Введите почту");
+				String email = scanner.nextLine();
+				System.out.println("Введите номер телефона");
+				long phoneNumber;
+				while (true) {
+					try {
+						phoneNumber = Long.parseLong(scanner.nextLine());
+						break;
+					} catch (NumberFormatException e) {
+						System.out.println("Неправильно введен номер, повторите попытку");
+					}
+				}
+				scanner.close();
+				if (database.insertCustomer(new Customer(fullName, email, phoneNumber))) {
+					System.out.println("Покупатель добавлен в базу");
+				} else {
+					System.out.println("Покупатель не добавлен в базу");
+				}
+			}
+			}
+
+			return;
+		}
 	}
 
 	public static void closeDatabase() {
