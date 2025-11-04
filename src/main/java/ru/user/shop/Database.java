@@ -71,6 +71,33 @@ public class Database {
 		return employees;
 	}
 
+	public List<Shop> getAllShops() {
+		List<Shop> shops = new ArrayList<Shop>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM shops;");
+			while (result.next()) {
+				shops.add(new Shop(result.getInt("id"), result.getString("address")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return shops;
+	}
+
+	public List<Warehouse> getAllWarehouses() {
+		List<Warehouse> warehouses = new ArrayList<Warehouse>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM warehouses;");
+			while (result.next()) {
+				warehouses
+						.add(new Warehouse(result.getInt("id"), result.getString("address"), result.getInt("shop_id")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return warehouses;
+	}
+
 	public boolean insertCustomer(Customer customer) {
 		try (PreparedStatement statement = connection
 				.prepareStatement("INSERT INTO customers (full_name, email, phone_number) VALUES (?, ?, ?)")) {
@@ -96,6 +123,30 @@ public class Database {
 			statement.setString(6, employee.getStatus());
 			statement.setInt(7, employee.getShopId());
 			statement.setBytes(8, employee.getPhoto().getBytes());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean insertShop(Shop shop) {
+		try (PreparedStatement statement = connection.prepareStatement("INSERT INTO shops (address) VALUES (?)")) {
+			statement.setString(1, shop.getAddress());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean insertWarehouse(Warehouse warehouse) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("INSERT INTO warehouses (address, shop_id) VALUES (?, ?)")) {
+			statement.setString(1, warehouse.getAddress());
+			statement.setInt(2, warehouse.getShopId());
 			statement.executeUpdate();
 			return true;
 		} catch (SQLException e) {

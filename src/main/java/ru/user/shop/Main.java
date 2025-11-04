@@ -31,7 +31,7 @@ public class Main {
 		options.addRequiredOption("ps", "password", true, "Password");
 
 		// TODO дописать описание
-		options.addOption("l", "list", true, "Lists tables, customers, employees, ...");
+		options.addOption("l", "list", true, "Lists tables, customers, employees, shops, warehouses, ...");
 		options.addOption("i", "insert", true, "Insert customer, employee, ...");
 
 		CommandLineParser parser = new DefaultParser();
@@ -114,6 +114,28 @@ public class Main {
 					});
 				}
 			}
+			case "shops" -> {
+				List<Shop> shops = database.getAllShops();
+				if (shops.isEmpty()) {
+					System.out.println("Магазинов нет");
+				} else {
+					System.out.println("Магазины:");
+					shops.forEach((shop) -> {
+						System.out.println(shop.toString());
+					});
+				}
+			}
+			case "warehouses" -> {
+				List<Warehouse> warehouses = database.getAllWarehouses();
+				if (warehouses.isEmpty()) {
+					System.out.println("Складов нет");
+				} else {
+					System.out.println("Склады:");
+					warehouses.forEach((warehouse) -> {
+						System.out.println(warehouse.toString());
+					});
+				}
+			}
 			default -> {
 				System.out.println("Такого параметра нет");
 			}
@@ -129,6 +151,15 @@ public class Main {
 			}
 			case "employee" -> {
 				insertEmployee(scanner);
+			}
+			case "shop" -> {
+				insertShop(scanner);
+			}
+			case "warehouse" -> {
+				insertWarehouse(scanner);
+			}
+			default -> {
+				System.out.println("Такого параметра нет");
 			}
 			}
 			scanner.close();
@@ -168,9 +199,31 @@ public class Main {
 //TODO тут должно запрашивать фото, пока пропустим
 		if (database.insertEmployee(
 				new Employee(fullName, email, phoneNumber, birthdayDate, dateOfEmployment, status, shopId, "PHOTO"))) {
-			System.out.println("Покупатель добавлен в базу");
+			System.out.println("Сотрудник добавлен в базу");
 		} else {
-			System.out.println("Покупатель не добавлен в базу");
+			System.out.println("Сотрудник не добавлен в базу");
+		}
+	}
+
+	public static void insertShop(Scanner scanner) {
+		System.out.println("Введите адрес");
+		String address = scanner.nextLine();
+		if (database.insertShop(new Shop(address))) {
+			System.out.println("Магазин добавлен в базу");
+		} else {
+			System.out.println("Магазин не добавлен в базу");
+		}
+	}
+
+	public static void insertWarehouse(Scanner scanner) {
+		System.out.println("Введите адрес");
+		String address = scanner.nextLine();
+		System.out.println("Введите ID магазина, к которому принадлежит склад");
+		int shopId = getIntFromInput(scanner);
+		if (database.insertWarehouse(new Warehouse(address, shopId))) {
+			System.out.println("Склад добавлен в базу");
+		} else {
+			System.out.println("Склад не добавлен в базу");
 		}
 	}
 
