@@ -55,12 +55,47 @@ public class Database {
 		return customers;
 	}
 
+	public List<Employee> getAllEmployees() {
+		List<Employee> employees = new ArrayList<Employee>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM employees;");
+			while (result.next()) {
+				employees.add(new Employee(result.getInt("id"), result.getString("full_name"),
+						result.getString("email"), result.getLong("phone_number"), result.getDate("birthday_date"),
+						result.getDate("date_of_employment"), result.getString("status"), result.getInt("shop_id"),
+						result.getString("photo")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return employees;
+	}
+
 	public boolean insertCustomer(Customer customer) {
 		try (PreparedStatement statement = connection
 				.prepareStatement("INSERT INTO customers (full_name, email, phone_number) VALUES (?, ?, ?)")) {
 			statement.setString(1, customer.getFullName());
 			statement.setString(2, customer.getEmail());
 			statement.setLong(3, customer.getPhoneNumber());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean insertEmployee(Employee employee) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"INSERT INTO employees (full_name, email, phone_number, birthday_date, date_of_employment, status, shop_id, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+			statement.setString(1, employee.getFullName());
+			statement.setString(2, employee.getEmail());
+			statement.setLong(3, employee.getPhoneNumber());
+			statement.setDate(4, employee.getBirthdayDate());
+			statement.setDate(5, employee.getDateOfEmployment());
+			statement.setString(6, employee.getStatus());
+			statement.setInt(7, employee.getShopId());
+			statement.setBytes(8, employee.getPhoto().getBytes());
 			statement.executeUpdate();
 			return true;
 		} catch (SQLException e) {

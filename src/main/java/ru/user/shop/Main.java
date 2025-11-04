@@ -2,6 +2,7 @@ package ru.user.shop;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
@@ -30,8 +31,8 @@ public class Main {
 		options.addRequiredOption("ps", "password", true, "Password");
 
 		// TODO дописать описание
-		options.addOption("l", "list", true, "Lists tables, customers, ...");
-		options.addOption("i", "insert", true, "Insert customer, ...");
+		options.addOption("l", "list", true, "Lists tables, customers, employees, ...");
+		options.addOption("i", "insert", true, "Insert customer, employee, ...");
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = HelpFormatter.builder().get();
@@ -72,11 +73,11 @@ public class Main {
 			System.exit(1);
 			return;
 		}
-		work(cmd);
+		executeCommand(cmd);
 		System.out.println("Конец работы программы");
 	}
 
-	public static void work(CommandLine cmd) {
+	public static void executeCommand(CommandLine cmd) {
 		if (cmd.hasOption("list")) {
 			// break не нужен, тк case "" -> {} сам ставит его, при case "": { } нужен
 			switch (cmd.getOptionValue("list")) {
@@ -102,6 +103,17 @@ public class Main {
 					});
 				}
 			}
+			case "employees" -> {
+				List<Employee> employees = database.getAllEmployees();
+				if (employees.isEmpty()) {
+					System.out.println("Сотрудников нет");
+				} else {
+					System.out.println("Сотрудники:");
+					employees.forEach((employee) -> {
+						System.out.println(employee.toString());
+					});
+				}
+			}
 			default -> {
 				System.out.println("Такого параметра нет");
 			}
@@ -110,33 +122,55 @@ public class Main {
 		}
 
 		if (cmd.hasOption("insert")) {
+			Scanner scanner = new Scanner(System.in, Charset.forName("Windows-1251"));
 			switch (cmd.getOptionValue("insert")) {
 			case "customer" -> {
-				Scanner scanner = new Scanner(System.in, Charset.forName("Windows-1251"));
-				System.out.println("Введите ФИО");
-				String fullName = scanner.nextLine();
-				System.out.println("Введите почту");
-				String email = scanner.nextLine();
-				System.out.println("Введите номер телефона");
-				long phoneNumber;
-				while (true) {
-					try {
-						phoneNumber = Long.parseLong(scanner.nextLine());
-						break;
-					} catch (NumberFormatException e) {
-						System.out.println("Неправильно введен номер, повторите попытку");
-					}
-				}
-				scanner.close();
-				if (database.insertCustomer(new Customer(fullName, email, phoneNumber))) {
-					System.out.println("Покупатель добавлен в базу");
-				} else {
-					System.out.println("Покупатель не добавлен в базу");
-				}
+				insertCustomer(scanner);
+			}
+			case "employee" -> {
+				insertEmployee(scanner);
 			}
 			}
-
+			scanner.close();
 			return;
+		}
+	}
+
+	public static void insertCustomer(Scanner scanner) {
+		System.out.println("Введите ФИО");
+		String fullName = scanner.nextLine();
+		System.out.println("Введите почту");
+		String email = scanner.nextLine();
+		System.out.println("Введите номер телефона");
+		long phoneNumber = getPhoneNumberFromInput(scanner);
+		if (database.insertCustomer(new Customer(fullName, email, phoneNumber))) {
+			System.out.println("Покупатель добавлен в базу");
+		} else {
+			System.out.println("Покупатель не добавлен в базу");
+		}
+	}
+
+	public static void insertEmployee(Scanner scanner) {
+		System.out.println("Введите ФИО");
+		String fullName = scanner.nextLine();
+		System.out.println("Введите почту");
+		String email = scanner.nextLine();
+		System.out.println("Введите номер телефона");
+		long phoneNumber = getPhoneNumberFromInput(scanner);
+		System.out.println("Введите дату рождения в формате (YYYY-MM-DD)");
+		Date birthdayDate = getDateFromInput(scanner);
+		System.out.println("Введите дату трудоустройства в формате (YYYY-MM-DD)");
+		Date dateOfEmployment = getDateFromInput(scanner);
+		System.out.println("Введите статус");
+		String status = scanner.nextLine();
+		System.out.println("Введите ID магазина, где работает сотрудник");
+		int shopId = getIntFromInput(scanner);
+//TODO тут должно запрашивать фото, пока пропустим
+		if (database.insertEmployee(
+				new Employee(fullName, email, phoneNumber, birthdayDate, dateOfEmployment, status, shopId, "PHOTO"))) {
+			System.out.println("Покупатель добавлен в базу");
+		} else {
+			System.out.println("Покупатель не добавлен в базу");
 		}
 	}
 
@@ -149,6 +183,48 @@ public class Main {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private static int getIntFromInput(Scanner scanner) {
+		int a;
+		while (true) {
+			try {
+				a = Integer.parseInt(scanner.nextLine());
+				break;
+			} catch (NumberFormatException e) {
+				System.out.println("Неправильно введено число, повторите попытку");
+			}
+		}
+		return a;
+	}
+
+	private static long getPhoneNumberFromInput(Scanner scanner) {
+		long phoneNumber;
+		while (true) {
+			try {
+				phoneNumber = Long.parseLong(scanner.nextLine());
+				break;
+			} catch (NumberFormatException e) {
+				System.out.println("Неправильно введен номер, повторите попытку");
+			}
+		}
+		return phoneNumber;
+	}
+
+	private static Date getDateFromInput(Scanner scanner) {
+		Date date;
+		while (true) {
+			try {
+				String input = scanner.nextLine();
+				String[] split = input.split("-");
+				date = new Date(Integer.parseInt(split[0]) - 1900, Integer.parseInt(split[1]) + 1,
+						Integer.parseInt(split[2]));
+				break;
+			} catch (Exception e) {
+				System.out.println("Неправильно введена дата, повторите попытку");
+			}
+		}
+		return date;
 	}
 
 }
