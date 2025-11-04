@@ -31,8 +31,8 @@ public class Main {
 		options.addRequiredOption("ps", "password", true, "Password");
 
 		// TODO дописать описание
-		options.addOption("l", "list", true, "Lists tables, customers, employees, shops, warehouses, ...");
-		options.addOption("i", "insert", true, "Insert customer, employee, ...");
+		options.addOption("l", "list", true, "Lists tables, customers, employees, shops, warehouses, suppliers, ...");
+		options.addOption("i", "insert", true, "Insert customer, employee, shop, warehouse, ...");
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = HelpFormatter.builder().get();
@@ -132,6 +132,17 @@ public class Main {
 				} else {
 					System.out.println("Склады:");
 					warehouses.forEach((warehouse) -> {
+						System.out.println(warehouse.toString());
+					});
+				}
+			}
+			case "suppliers" -> {
+				List<Supplier> suppliers = database.getAllSuppliers();
+				if (suppliers.isEmpty()) {
+					System.out.println("Поставщиков нет");
+				} else {
+					System.out.println("Поставщики:");
+					suppliers.forEach((warehouse) -> {
 						System.out.println(warehouse.toString());
 					});
 				}

@@ -98,6 +98,21 @@ public class Database {
 		return warehouses;
 	}
 
+	public List<Supplier> getAllSuppliers() {
+		List<Supplier> suppliers = new ArrayList<Supplier>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM suppliers;");
+			while (result.next()) {
+				suppliers.add(new Supplier(result.getInt("id"), result.getString("name"), result.getString("email"),
+						result.getLong("phone_number"), result.getString("address"), result.getLong("inn"),
+						result.getInt("rating")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return suppliers;
+	}
+
 	public boolean insertCustomer(Customer customer) {
 		try (PreparedStatement statement = connection
 				.prepareStatement("INSERT INTO customers (full_name, email, phone_number) VALUES (?, ?, ?)")) {
