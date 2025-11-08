@@ -73,6 +73,18 @@ public class Main {
 			System.exit(1);
 			return;
 		}
+
+		// database.searchCustomerByFullName("о").forEach((x) ->
+		// System.out.println(x.toString()));;
+		// database.searchEmployeeByFullName("о").forEach((x) ->
+		// System.out.println(x.toString()));;
+//		database.searchProductByName("о").forEach((x) -> System.out.println(x.toString()));;
+//		database.searchProductByName("г").forEach((x) -> System.out.println(x.toString()));;
+//		database.searchProductBySupplyId(1).forEach((x) -> System.out.println(x.toString()));;
+//		database.searchEmployeeByShopId(1).forEach((x) -> System.out.println(x.toString()));;
+		database.searchSupplierByName("оооо").forEach((x) -> System.out.println(x.toString()));
+		;
+
 		executeCommand(cmd);
 		System.out.println("Конец работы программы");
 	}
@@ -144,6 +156,39 @@ public class Main {
 					System.out.println("Поставщики:");
 					suppliers.forEach((warehouse) -> {
 						System.out.println(warehouse.toString());
+					});
+				}
+			}
+			case "checks" -> {
+				List<Check> checks = database.getAllChecks();
+				if (checks.isEmpty()) {
+					System.out.println("Чеков нет");
+				} else {
+					System.out.println("Чеки:");
+					checks.forEach((check) -> {
+						System.out.println(check.toString());
+					});
+				}
+			}
+			case "supplies" -> {
+				List<Supply> supplies = database.getAllSupplies();
+				if (supplies.isEmpty()) {
+					System.out.println("Поставок нет");
+				} else {
+					System.out.println("Поставки:");
+					supplies.forEach((supply) -> {
+						System.out.println(supply.toString());
+					});
+				}
+			}
+			case "products" -> {
+				List<Product> products = database.getAllProducts();
+				if (products.isEmpty()) {
+					System.out.println("Продуктов нет");
+				} else {
+					System.out.println("Продукты:");
+					products.forEach((supply) -> {
+						System.out.println(supply.toString());
 					});
 				}
 			}

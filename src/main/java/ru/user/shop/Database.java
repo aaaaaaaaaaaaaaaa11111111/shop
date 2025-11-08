@@ -42,33 +42,21 @@ public class Database {
 	}
 
 	public List<Customer> getAllCustomers() {
-		List<Customer> customers = new ArrayList<Customer>();
 		try {
-			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM customers;");
-			while (result.next()) {
-				customers.add(new Customer(result.getInt("id"), result.getString("full_name"),
-						result.getString("email"), result.getLong("phone_number")));
-			}
+			return resultToCustomers(connection.createStatement().executeQuery("SELECT * FROM customers;"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return customers;
+		return List.of();
 	}
 
 	public List<Employee> getAllEmployees() {
-		List<Employee> employees = new ArrayList<Employee>();
 		try {
-			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM employees;");
-			while (result.next()) {
-				employees.add(new Employee(result.getInt("id"), result.getString("full_name"),
-						result.getString("email"), result.getLong("phone_number"), result.getDate("birthday_date"),
-						result.getDate("date_of_employment"), result.getString("status"), result.getInt("shop_id"),
-						result.getString("photo")));
-			}
+			return resultToEmployees(connection.createStatement().executeQuery("SELECT * FROM employees;"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return employees;
+		return List.of();
 	}
 
 	public List<Shop> getAllShops() {
@@ -99,18 +87,49 @@ public class Database {
 	}
 
 	public List<Supplier> getAllSuppliers() {
-		List<Supplier> suppliers = new ArrayList<Supplier>();
 		try {
-			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM suppliers;");
+			return resultToSuppliers(connection.createStatement().executeQuery("SELECT * FROM suppliers;"));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Check> getAllChecks() {
+		List<Check> checks = new ArrayList<Check>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM checks;");
 			while (result.next()) {
-				suppliers.add(new Supplier(result.getInt("id"), result.getString("name"), result.getString("email"),
-						result.getLong("phone_number"), result.getString("address"), result.getLong("inn"),
-						result.getInt("rating")));
+				checks.add(new Check(result.getInt("id"), result.getInt("shop_id"), result.getInt("customer_id"),
+						result.getDate("purchase_date"), result.getDouble("discount")));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return suppliers;
+		return checks;
+	}
+
+	public List<Supply> getAllSupplies() {
+		List<Supply> supplies = new ArrayList<Supply>();
+		try {
+			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM supplies;");
+			while (result.next()) {
+				supplies.add(new Supply(result.getInt("id"), result.getDouble("price"), result.getDate("delivery_date"),
+						result.getInt("supplier_id"), result.getInt("warehouse_id")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return supplies;
+	}
+
+	public List<Product> getAllProducts() {
+		try {
+			resultToProducts(connection.createStatement().executeQuery("SELECT * FROM products;"));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
 	}
 
 	public boolean insertCustomer(Customer customer) {
@@ -168,6 +187,124 @@ public class Database {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	public boolean insertSupplier(Supplier supplier) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"INSERT INTO suppliers (name, email, phone_number, address, inn, rating) VALUES (?, ?, ?, ?, ?, ?)")) {
+			statement.setString(1, supplier.getName());
+			statement.setString(2, supplier.getEmail());
+			statement.setLong(3, supplier.getPhoneNumber());
+			statement.setString(4, supplier.getAddress());
+			statement.setLong(5, supplier.getInn());
+			statement.setInt(6, supplier.getRating());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public List<Customer> searchCustomerByFullName(String fullName) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("SELECT * FROM customers WHERE full_name LIKE ?")) {
+			statement.setString(1, "%" + fullName + "%");
+			return resultToCustomers(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Employee> searchEmployeeByFullName(String fullName) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("SELECT * FROM employees WHERE full_name LIKE ?")) {
+			statement.setString(1, "%" + fullName + "%");
+			return resultToEmployees(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Employee> searchEmployeeByShopId(int shopId) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM employees WHERE shop_id = ?")) {
+			statement.setInt(1, shopId);
+			return resultToEmployees(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Product> searchProductByName(String name) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE name LIKE ?")) {
+			statement.setString(1, "%" + name + "%");
+			return resultToProducts(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Product> searchProductBySupplyId(int supplyId) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE supply_id = ?")) {
+			statement.setInt(1, supplyId);
+			return resultToProducts(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	private List<Customer> resultToCustomers(ResultSet result) throws SQLException {
+		List<Customer> customers = new ArrayList<Customer>();
+		while (result.next()) {
+			customers.add(new Customer(result.getInt("id"), result.getString("full_name"), result.getString("email"),
+					result.getLong("phone_number")));
+		}
+		return customers;
+	}
+
+	private List<Employee> resultToEmployees(ResultSet result) throws SQLException {
+		List<Employee> employees = new ArrayList<Employee>();
+		while (result.next()) {
+			employees.add(new Employee(result.getInt("id"), result.getString("full_name"), result.getString("email"),
+					result.getLong("phone_number"), result.getDate("birthday_date"),
+					result.getDate("date_of_employment"), result.getString("status"), result.getInt("shop_id"),
+					result.getString("photo")));
+		}
+		return employees;
+	}
+
+	private List<Product> resultToProducts(ResultSet result) throws SQLException {
+		List<Product> products = new ArrayList<Product>();
+		while (result.next()) {
+			products.add(new Product(result.getInt("id"), result.getString("name"), result.getInt("article"),
+					result.getInt("amount"), result.getInt("supply_id"), result.getDouble("price")));
+		}
+		return products;
+	}
+
+	private List<Supplier> resultToSuppliers(ResultSet result) throws SQLException {
+		List<Supplier> suppliers = new ArrayList<Supplier>();
+		while (result.next()) {
+			suppliers.add(new Supplier(result.getInt("id"), result.getString("name"), result.getString("email"),
+					result.getLong("phone_number"), result.getString("address"), result.getLong("inn"),
+					result.getInt("rating")));
+		}
+		return suppliers;
+	}
+
+	public List<Supplier> searchSupplierByName(String name) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM suppliers WHERE name LIKE ?")) {
+			statement.setString(1, "%" + name + "%");
+			return resultToSuppliers(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
 	}
 
 }
