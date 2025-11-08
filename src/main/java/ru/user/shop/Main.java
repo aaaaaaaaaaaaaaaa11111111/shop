@@ -67,8 +67,14 @@ public class Main {
 		try {
 			database = new Database(host, port, databaseName, username, password);
 			System.out.println("Успешное соединение с БД");
+			new GUI();
 		} catch (SQLException e) {
 			System.out.println("Не удалось подключиться к БД, проверьте введенные данные на правильность");
+			e.printStackTrace();
+			System.exit(1);
+			return;
+		} catch (Exception e) {
+			System.out.println("Произошла ошибка");
 			e.printStackTrace();
 			System.exit(1);
 			return;
