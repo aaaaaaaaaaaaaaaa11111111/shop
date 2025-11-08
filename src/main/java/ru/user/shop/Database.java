@@ -248,6 +248,17 @@ public class Database {
 		return List.of();
 	}
 
+	public List<Position> searchPositionByCheckId(int checkId) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("SELECT * FROM position_in_check WHERE check_id = ?")) {
+			statement.setInt(1, checkId);
+			return resultToPosition(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
 	public List<Supplier> searchSupplierByName(String name) {
 		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM suppliers WHERE name LIKE ?")) {
 			statement.setString(1, "%" + name + "%");
@@ -334,5 +345,14 @@ public class Database {
 					result.getInt("supplier_id"), result.getInt("warehouse_id")));
 		}
 		return supplies;
+	}
+
+	private List<Position> resultToPosition(ResultSet result) throws SQLException {
+		List<Position> positions = new ArrayList<Position>();
+		while (result.next()) {
+			positions.add(new Position(result.getInt("id"), result.getInt("product_id"), result.getInt("check_id"),
+					result.getInt("amount")));
+		}
+		return positions;
 	}
 }
