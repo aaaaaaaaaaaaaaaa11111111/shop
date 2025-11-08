@@ -82,8 +82,8 @@ public class Main {
 //		database.searchProductByName("г").forEach((x) -> System.out.println(x.toString()));;
 //		database.searchProductBySupplyId(1).forEach((x) -> System.out.println(x.toString()));;
 //		database.searchEmployeeByShopId(1).forEach((x) -> System.out.println(x.toString()));;
-		database.searchSupplierByName("оооо").forEach((x) -> System.out.println(x.toString()));
-		;
+//		database.searchSupplierByName("оооо").forEach((x) -> System.out.println(x.toString()));
+		database.searchCheckByCustomerId(1).forEach((x) -> System.out.println(x.toString()));
 
 		executeCommand(cmd);
 		System.out.println("Конец работы программы");

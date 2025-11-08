@@ -96,17 +96,12 @@ public class Database {
 	}
 
 	public List<Check> getAllChecks() {
-		List<Check> checks = new ArrayList<Check>();
 		try {
-			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM checks;");
-			while (result.next()) {
-				checks.add(new Check(result.getInt("id"), result.getInt("shop_id"), result.getInt("customer_id"),
-						result.getDate("purchase_date"), result.getDouble("discount")));
-			}
+			return resultToChecks(connection.createStatement().executeQuery("SELECT * FROM checks;"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return checks;
+		return List.of();
 	}
 
 	public List<Supply> getAllSupplies() {
@@ -258,6 +253,26 @@ public class Database {
 		return List.of();
 	}
 
+	public List<Supplier> searchSupplierByName(String name) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM suppliers WHERE name LIKE ?")) {
+			statement.setString(1, "%" + name + "%");
+			return resultToSuppliers(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
+	public List<Check> searchCheckByCustomerId(int customerId) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM checks WHERE customer_id = ?")) {
+			statement.setInt(1, customerId);
+			return resultToChecks(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
 	private List<Customer> resultToCustomers(ResultSet result) throws SQLException {
 		List<Customer> customers = new ArrayList<Customer>();
 		while (result.next()) {
@@ -297,14 +312,13 @@ public class Database {
 		return suppliers;
 	}
 
-	public List<Supplier> searchSupplierByName(String name) {
-		try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM suppliers WHERE name LIKE ?")) {
-			statement.setString(1, "%" + name + "%");
-			return resultToSuppliers(statement.executeQuery());
-		} catch (SQLException e) {
-			e.printStackTrace();
+	private List<Check> resultToChecks(ResultSet result) throws SQLException {
+		List<Check> checks = new ArrayList<Check>();
+		while (result.next()) {
+			checks.add(new Check(result.getInt("id"), result.getInt("shop_id"), result.getInt("customer_id"),
+					result.getDate("purchase_date"), result.getDouble("discount")));
 		}
-		return List.of();
+		return checks;
 	}
 
 }
