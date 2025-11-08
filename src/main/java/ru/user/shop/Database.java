@@ -105,17 +105,12 @@ public class Database {
 	}
 
 	public List<Supply> getAllSupplies() {
-		List<Supply> supplies = new ArrayList<Supply>();
 		try {
-			ResultSet result = connection.createStatement().executeQuery("SELECT * FROM supplies;");
-			while (result.next()) {
-				supplies.add(new Supply(result.getInt("id"), result.getDouble("price"), result.getDate("delivery_date"),
-						result.getInt("supplier_id"), result.getInt("warehouse_id")));
-			}
+			return resultToSupplies(connection.createStatement().executeQuery("SELECT * FROM supplies;"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return supplies;
+		return List.of();
 	}
 
 	public List<Product> getAllProducts() {
@@ -273,6 +268,17 @@ public class Database {
 		return List.of();
 	}
 
+	public List<Supply> searchSupplyBySupplierId(int supplierId) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("SELECT * FROM supplies WHERE supplier_id = ?")) {
+			statement.setInt(1, supplierId);
+			return resultToSupplies(statement.executeQuery());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return List.of();
+	}
+
 	private List<Customer> resultToCustomers(ResultSet result) throws SQLException {
 		List<Customer> customers = new ArrayList<Customer>();
 		while (result.next()) {
@@ -321,4 +327,12 @@ public class Database {
 		return checks;
 	}
 
+	private List<Supply> resultToSupplies(ResultSet result) throws SQLException {
+		List<Supply> supplies = new ArrayList<Supply>();
+		while (result.next()) {
+			supplies.add(new Supply(result.getInt("id"), result.getDouble("price"), result.getDate("delivery_date"),
+					result.getInt("supplier_id"), result.getInt("warehouse_id")));
+		}
+		return supplies;
+	}
 }
