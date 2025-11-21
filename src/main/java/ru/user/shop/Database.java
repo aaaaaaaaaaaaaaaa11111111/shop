@@ -115,7 +115,7 @@ public class Database {
 
 	public List<Product> getAllProducts() {
 		try {
-			resultToProducts(connection.createStatement().executeQuery("SELECT * FROM products;"));
+			return resultToProducts(connection.createStatement().executeQuery("SELECT * FROM products;"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
