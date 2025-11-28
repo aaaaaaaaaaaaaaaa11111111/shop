@@ -22,4 +22,7 @@ public class Supplier {
 	private long inn;
 	@NonNull
 	private int rating;
+
+	protected Supplier() {
+	}
 }

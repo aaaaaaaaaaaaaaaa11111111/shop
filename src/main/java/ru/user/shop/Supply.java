@@ -20,4 +20,7 @@ public class Supply {
 	private Date deliveryDate;
 	@NonNull
 	private int supplierId, warehouseId;
+
+	protected Supply() {
+	}
 }

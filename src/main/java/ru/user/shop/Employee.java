@@ -27,4 +27,7 @@ public class Employee {
 	private int shopId;
 	@NonNull
 	private String photo;
+
+	protected Employee() {
+	}
 }

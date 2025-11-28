@@ -14,4 +14,7 @@ public class Position {
 	private int id;
 	@NonNull
 	private int productId, checkId, amount;
+
+	protected Position() {
+	}
 }

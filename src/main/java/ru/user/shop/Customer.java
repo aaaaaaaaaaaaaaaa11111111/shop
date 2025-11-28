@@ -18,4 +18,6 @@ public class Customer {
 	@NonNull
 	private long phoneNumber;
 
+	protected Customer() {
+	}
 }

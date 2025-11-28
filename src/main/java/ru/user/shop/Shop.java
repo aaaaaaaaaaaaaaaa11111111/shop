@@ -16,4 +16,6 @@ public class Shop {
 	@NonNull
 	private String address;
 
+	protected Shop() {
+	}
 }

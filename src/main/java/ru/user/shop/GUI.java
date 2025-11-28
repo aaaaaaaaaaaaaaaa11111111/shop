@@ -8,6 +8,10 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -22,6 +26,9 @@ import javax.swing.table.DefaultTableModel;
 public class GUI extends JFrame {
 
 	private Database database;
+
+	private JComboBox<String> entities;
+	private JTable table;
 
 	public GUI(Database database) {
 		super("Shop");
@@ -53,20 +60,20 @@ public class GUI extends JFrame {
 		b1.addItem("Обновить");
 		add(b1, gbc);
 
-		JComboBox<String> b2 = new JComboBox<String>();
+		entities = new JComboBox<String>();
 		gbc.gridx = 0;
 		gbc.gridy = 1;
 
-		b2.setPreferredSize(new Dimension(125, 25));
-		b2.addItem("Покупатель");
-		b2.addItem("Сотрудник");
-		b2.addItem("Магазин");
-		b2.addItem("Склад");
-		b2.addItem("Поставщик");
-		b2.addItem("Чек");
-		b2.addItem("Поставка");
-		b2.addItem("Продукт");
-		add(b2, gbc);
+		entities.setPreferredSize(new Dimension(125, 25));
+		entities.addItem("Покупатель");
+		entities.addItem("Сотрудник");
+		entities.addItem("Магазин");
+		entities.addItem("Склад");
+		entities.addItem("Поставщик");
+		entities.addItem("Чек");
+		entities.addItem("Поставка");
+		entities.addItem("Продукт");
+		add(entities, gbc);
 
 		JComboBox<String> b3 = new JComboBox<String>();
 		gbc.gridx = 0;
@@ -87,7 +94,7 @@ public class GUI extends JFrame {
 		area.setPreferredSize(new Dimension(125, 25));
 		add(area, gbc);
 
-		JTable table = new JTable();
+		table = new JTable();
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setPreferredSize(new Dimension(width - width / 5, height / 2));
 
@@ -99,15 +106,15 @@ public class GUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onAction(b1, b2, b3);
+				onComboBoxSelectItemAction(b1, entities, b3);
 			}
 		});
 
-		b2.addActionListener(new ActionListener() {
+		entities.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onAction(b1, b2, b3);
+				onComboBoxSelectItemAction(b1, entities, b3);
 			}
 		});
 
@@ -117,7 +124,7 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 
 				String action = (String) b1.getSelectedItem();
-				String entity = (String) b2.getSelectedItem();
+				String entity = (String) entities.getSelectedItem();
 				String option = (String) b3.getSelectedItem();
 
 				if (action.equals("Вывести")) {
@@ -227,6 +234,7 @@ public class GUI extends JFrame {
 				}
 
 				if (action.equals("Обновить")) {
+					// делаем проверку, что поля текущей таблицы совпадают с полями текущего класса
 					DefaultTableModel model = (DefaultTableModel) table.getModel();
 					if (model.getRowCount() == 0) {
 						return;
@@ -237,37 +245,7 @@ public class GUI extends JFrame {
 						tableFieldNames[i] = model.getColumnName(i);
 					}
 
-					Class<?> clazz = null; // TODO перенести в enum/hashmap?
-					switch (entity) {
-					case "Покупатель" -> {
-						clazz = Customer.class;
-					}
-					case "Сотрудник" -> {
-						clazz = Employee.class;
-					}
-					case "Магазин" -> {
-						clazz = Shop.class;
-					}
-					case "Склад" -> {
-						clazz = Warehouse.class;
-					}
-					case "Поставщик" -> {
-						clazz = Supplier.class;
-					}
-					case "Чек" -> {
-						clazz = Check.class;
-					}
-					case "Поставка" -> {
-						clazz = Supply.class;
-					}
-					case "Продукт" -> {
-						clazz = Product.class;
-					}
-					}
-					if (clazz == null) {
-						return;
-					}
-					Object[] classFieldNames = getObjectFieldNames(clazz);
+					Object[] classFieldNames = getObjectFieldNames(getCurrentEntityClass());
 					if (tableFieldNames.length != classFieldNames.length) {
 						return;
 					}
@@ -281,14 +259,63 @@ public class GUI extends JFrame {
 					if (!flag) {
 						return;
 					}
-					// TODO сюда добавить обновление объекта
-					// TODO будет баг если поля у двух разных классов будут одинаковые
-					System.out.println("!#!@#");
+
+					Class<?> clazz = getCurrentEntityClass();
+					List<Object> objects = parseTableToObjects();
+					for (Object object : objects) {
+
+						if (clazz == Customer.class) {
+							database.updateCustomer((Customer) object);
+						} else if (clazz == Employee.class) {
+							database.updateEmployee((Employee) object);
+						} else if (clazz == Shop.class) {
+							database.updateShop((Shop) object);
+						} else if (clazz == Warehouse.class) {
+							database.updateWarehouse((Warehouse) object);
+						} else if (clazz == Supplier.class) {
+							database.updateSupplier((Supplier) object);
+						} else if (clazz == Check.class) {
+							database.updateCheck((Check) object);
+						} else if (clazz == Supply.class) {
+							// database.updateSupply((Supply) object);
+						} else if (clazz == Product.class) {
+							// database.updateProduct((Product) object);
+						}
+					}
+				}
+
+				if (action.equals("Вставить")) {
+					try {
+						Class<?> clazz = getCurrentEntityClass();
+						List<Object> objects = parseTableToObjects();
+						for (Object object : objects) {
+							if (clazz == Customer.class) {
+								database.insertCustomer((Customer) object);
+							} else if (clazz == Employee.class) {
+								database.insertEmployee((Employee) object);
+							} else if (clazz == Shop.class) {
+								database.insertShop((Shop) object);
+							} else if (clazz == Warehouse.class) {
+								database.insertWarehouse((Warehouse) object);
+							} else if (clazz == Supplier.class) {
+								database.insertSupplier((Supplier) object);
+							} else if (clazz == Check.class) {
+								database.insertCheck((Check) object);
+							} else if (clazz == Supply.class) {
+								database.insertSupply((Supply) object);
+							} else if (clazz == Product.class) {
+								database.insertProduct((Product) object);
+							}
+						}
+						table.setModel(new DefaultTableModel());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		});
 
-		onAction(b1, b2, b3);// нужно для первичного запуска
+		onComboBoxSelectItemAction(b1, entities, b3);// нужно для первичного запуска
 		setVisible(true);
 	}
 
@@ -300,7 +327,7 @@ public class GUI extends JFrame {
 	 * @param b2
 	 * @param b3
 	 */
-	private void onAction(JComboBox<String> b1, JComboBox<String> b2, JComboBox<String> b3) {
+	private void onComboBoxSelectItemAction(JComboBox<String> b1, JComboBox<String> b2, JComboBox<String> b3) {
 		b3.removeAllItems();
 
 		switch ((String) b1.getSelectedItem()) {
@@ -340,7 +367,49 @@ public class GUI extends JFrame {
 			}
 			}
 		}
+		case "Вставить" -> {
+			DefaultTableModel model = new DefaultTableModel(
+					new Object[1][getCurrentEntityClass().getDeclaredFields().length],
+					getObjectFieldNames(getCurrentEntityClass()));
+			table.setModel(model);
 		}
+		}
+	}
+
+	/**
+	 * Функция узнает, с какой сущностью мы сейчас работаем с помощью ComboBox
+	 * entites
+	 * 
+	 * @return Возвращает класс сущности
+	 */
+	private Class<?> getCurrentEntityClass() {
+		switch ((String) entities.getSelectedItem()) {
+		case "Покупатель" -> {
+			return Customer.class;
+		}
+		case "Сотрудник" -> {
+			return Employee.class;
+		}
+		case "Магазин" -> {
+			return Shop.class;
+		}
+		case "Склад" -> {
+			return Warehouse.class;
+		}
+		case "Поставщик" -> {
+			return Supplier.class;
+		}
+		case "Чек" -> {
+			return Check.class;
+		}
+		case "Поставка" -> {
+			return Supply.class;
+		}
+		case "Продукт" -> {
+			return Product.class;
+		}
+		}
+		throw new NullPointerException();
 	}
 
 	private void setCustomerInTable(JTable table, List<Customer> customers) {
@@ -389,6 +458,52 @@ public class GUI extends JFrame {
 		DefaultTableModel model = new DefaultTableModel(getObjectFieldsValues(Product.class, products),
 				getObjectFieldNames(Product.class));
 		table.setModel(model);
+	}
+
+	private List<Object> parseTableToObjects() {
+		List<Object> objects = new ArrayList<Object>();
+		try {
+			for (int row = 0; row < table.getRowCount(); row++) {
+				Object object = getCurrentEntityClass().newInstance();
+				for (int column = 0; column < table.getColumnCount(); column++) {
+					Field field = object.getClass().getDeclaredFields()[column];
+					String value = table.getValueAt(row, column).toString();
+					field.setAccessible(true);
+					if (field.getName().equals("id")) {
+						if (value == null) {
+							continue;
+						}
+						try {
+							field.setInt(object, Integer.parseInt(value));
+						} catch (NumberFormatException ignored) {
+
+						}
+						continue;
+					}
+
+					Class<?> fieldType = field.getType();
+					if (fieldType == int.class) {
+						field.setInt(object, Integer.parseInt(value));
+					}
+					if (fieldType == long.class) {
+						field.setLong(object, Long.parseLong(value));
+
+					}
+					if (fieldType == Date.class) {
+						LocalDate localDate = LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+						Date sqlDate = Date.valueOf(localDate);
+						field.set(object, sqlDate);
+					}
+					if (fieldType == String.class) {
+						field.set(object, value);
+					}
+				}
+				objects.add(object);
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return objects;
 	}
 
 	/**

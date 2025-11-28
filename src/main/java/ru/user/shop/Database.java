@@ -196,6 +196,52 @@ public class Database {
 		return false;
 	}
 
+	public boolean insertCheck(Check check) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"INSERT INTO checks (shop_id, customer_id, purchase_date, discount) VALUES (?, ?, ?, ?)")) {
+			statement.setInt(1, check.getShopId());
+			statement.setInt(2, check.getCustomerId());
+			statement.setDate(3, check.getPurchaseDate());
+			statement.setDouble(4, check.getDiscount());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean insertSupply(Supply supply) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"INSERT INTO supplies (price, delivery_date, supplier_id, warehouse_id) VALUES (?, ?, ?, ?)")) {
+			statement.setDouble(1, supply.getPrice());
+			statement.setDate(2, supply.getDeliveryDate());
+			statement.setInt(3, supply.getSupplierId());
+			statement.setInt(4, supply.getWarehouseId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean insertProduct(Product products) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"INSERT INTO products (name, article, amount, supply_id, price) VALUES (?, ?, ?, ?, ?)")) {
+			statement.setString(1, products.getName());
+			statement.setInt(2, products.getArticle());
+			statement.setInt(3, products.getAmount());
+			statement.setInt(4, products.getSupplyId());
+			statement.setDouble(5, products.getPrice());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	public List<Customer> searchCustomerByFullName(String fullName) {
 		try (PreparedStatement statement = connection
 				.prepareStatement("SELECT * FROM customers WHERE full_name LIKE ?")) {
@@ -290,6 +336,101 @@ public class Database {
 		return List.of();
 	}
 
+	public boolean updateCustomer(Customer customer) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("UPDATE customers SET full_name = ?, email = ?, phone_number = ? WHERE id = ?")) {
+			statement.setString(1, customer.getFullName());
+			statement.setString(2, customer.getEmail());
+			statement.setLong(3, customer.getPhoneNumber());
+			statement.setInt(4, customer.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean updateEmployee(Employee employee) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"UPDATE employees SET full_name = ?, email = ?, phone_number = ?, birthday_date = ?, date_of_employment = ?, status = ?, shop_id = ?, photo = ? WHERE id = ?")) {
+			statement.setString(1, employee.getFullName());
+			statement.setString(2, employee.getEmail());
+			statement.setLong(3, employee.getPhoneNumber());
+			statement.setDate(4, employee.getBirthdayDate());
+			statement.setDate(5, employee.getDateOfEmployment());
+			statement.setString(6, employee.getStatus());
+			statement.setInt(7, employee.getShopId());
+			statement.setBytes(8, employee.getPhoto().getBytes());
+			statement.setInt(9, employee.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean updateShop(Shop shop) {
+		try (PreparedStatement statement = connection.prepareStatement("UPDATE shops SET address = ? WHERE id = ?")) {
+			statement.setString(1, shop.getAddress());
+			statement.setInt(2, shop.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean updateWarehouse(Warehouse warehouse) {
+		try (PreparedStatement statement = connection
+				.prepareStatement("UPDATE warehouses SET address = ?, shop_id = ? WHERE id = ?")) {
+			statement.setString(1, warehouse.getAddress());
+			statement.setInt(2, warehouse.getShopId());
+			statement.setInt(3, warehouse.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean updateSupplier(Supplier supplier) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"UPDATE suppliers SET name = ?, email = ?, phone_number = ?, address = ?, inn = ?, rating = ? WHERE id = ?")) {
+			statement.setString(1, supplier.getName());
+			statement.setString(2, supplier.getEmail());
+			statement.setLong(3, supplier.getPhoneNumber());
+			statement.setString(4, supplier.getAddress());
+			statement.setLong(5, supplier.getInn());
+			statement.setInt(6, supplier.getRating());
+			statement.setInt(7, supplier.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean updateCheck(Check check) {
+		try (PreparedStatement statement = connection.prepareStatement(
+				"UPDATE checks SET shop_id = ?, customer_id = ?, purchase_date = ?, discount = ? WHERE id = ?")) {
+			statement.setInt(1, check.getShopId());
+			statement.setInt(2, check.getCustomerId());
+			statement.setDate(3, check.getPurchaseDate());
+			statement.setDouble(4, check.getDiscount());
+			statement.setInt(5, check.getId());
+			statement.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	private List<Customer> resultToCustomers(ResultSet result) throws SQLException {
 		List<Customer> customers = new ArrayList<Customer>();
 		while (result.next()) {
@@ -355,4 +496,5 @@ public class Database {
 		}
 		return positions;
 	}
+
 }

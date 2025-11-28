@@ -20,4 +20,8 @@ public class Check {
 	private Date purchaseDate;
 	@NonNull
 	private double discount;
+
+	protected Check() {
+	}
+
 }

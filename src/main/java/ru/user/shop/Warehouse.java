@@ -17,4 +17,7 @@ public class Warehouse {
 	private String address;
 	@NonNull
 	private int shopId;
+
+	protected Warehouse() {
+	}
 }

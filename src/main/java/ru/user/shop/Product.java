@@ -18,4 +18,7 @@ public class Product {
 	private int article, amount, supplyId;
 	@NonNull
 	private double price;
+
+	protected Product() {
+	}
 }
